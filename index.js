@@ -15,7 +15,7 @@ app.use(cors());
 
 const { initialiseDatabase } = require("./db/dbConnect");
 
-await initialiseDatabase();
+ initialiseDatabase();
 
 const Event = require("./models/event.model") 
 const EventInfo = require("./models/eventInfo.model");
