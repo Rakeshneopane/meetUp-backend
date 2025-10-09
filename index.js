@@ -15,7 +15,7 @@ app.use(cors());
 
 const { initialiseDatabase } = require("./db/dbConnect");
 
-initialiseDatabase();
+await initialiseDatabase();
 
 const Event = require("./models/event.model") 
 const EventInfo = require("./models/eventInfo.model");
@@ -26,9 +26,9 @@ app.get("/",(req,res)=>{
     res.send("Meetup Api is working!")
 });
 
-app.listen(PORT, ()=>{
-    console.log("Server running on port: ",PORT);
-});
+// app.listen(PORT, ()=>{
+//     console.log("Server running on port: ",PORT);
+// });
 
 const createEvent = async (event)=>{
     try {
@@ -257,3 +257,5 @@ app.delete("/deleteEventById/:id", async(req,res)=>{
         res.status(500).json({error: "Cannot fetch the event by type."})
     }
 });
+
+module.exports = app;
