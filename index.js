@@ -26,9 +26,9 @@ app.get("/",(req,res)=>{
     res.send("Meetup Api is working!")
 });
 
-// app.listen(PORT, ()=>{
-//     console.log("Server running on port: ",PORT);
-// });
+app.listen(PORT, ()=>{
+    console.log("Server running on port: ",PORT);
+});
 
 const createEvent = async (event)=>{
     try {
