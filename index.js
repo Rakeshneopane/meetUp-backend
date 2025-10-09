@@ -111,9 +111,9 @@ app.get("/events", async(req,res)=>{
     }
 });
 
-const getEventById = async(eventId)=>{
+const getEventInfoById = async(eventId)=>{
     try {
-        const event = await Event.findById(eventId);
+        const event = await EventInfo.findById(eventId);
         return event;        
     } catch (error) {
          console.log("Cannot find the event", error);        
@@ -123,7 +123,7 @@ const getEventById = async(eventId)=>{
 
 app.get("/event/:id", async(req,res)=>{
     try {
-        const event = await getEventById(req.params.id);
+        const event = await getEventInfoById(req.params.id);
         if (event){
             res.status(200).json(event);
         }
