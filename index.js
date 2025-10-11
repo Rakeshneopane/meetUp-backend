@@ -97,8 +97,8 @@ const createSpeakerInfo = async (eventInfo)=>{
 
 app.post("/speakerInfo", async( req,res)=>{
     try {
-        const {speakerName,speakerImage, speakerRole} = req.body;
-        if(!speakerName || !speakerImage || !speakerRole){
+        const {speakerName,speakerImg, speakerRole} = req.body;
+        if(!speakerName || !speakerImg || !speakerRole){
             return res.status(400).json({error: "Speaker informations are required"});
         }
         else{

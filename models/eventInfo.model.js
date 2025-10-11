@@ -24,11 +24,10 @@ const EventInfoSchema = new mongoose.Schema({
         ref: "Event",
         required: true,
     },
-    speakerInfo:{
+    speakerInfo:[{
             type: mongoose.Schema.Types.ObjectId,
-            ref: "SpeakerInfo",
-           
-        }
+            ref: "SpeakerInfo",   
+        }]
 },{
     timestamps: true,
 });
