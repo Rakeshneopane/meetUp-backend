@@ -19,6 +19,7 @@ const { initialiseDatabase } = require("./db/dbConnect");
 
 const Event = require("./models/event.model") 
 const EventInfo = require("./models/eventInfo.model");
+const SpeakerInfo = require("./models/speaker.model");
 
 const PORT = 3000;
 
@@ -46,15 +47,14 @@ app.post("/event", async(req,res)=>{
         const { event, eventType, date, timings } = req.body;
 
         if(!event || !eventType || !date || !timings){
-            res.status(400).json({error: "Event, type,date and timings are required."})
+            return res.status(400).json({error: "Event, type,date and timings are required."})
         }
         else{
             const savedEvent = await createEvent(req.body);
             res.status(201).json({message: "Event created successfully", event: savedEvent});
         }        
     } catch (error) {
-        res.status(500).json({error: "Failed to fetch create route"});
-        throw error;
+        res.status(500).json({error: "Failed to fetch create route"}); 
     }
 });
 
@@ -73,25 +73,72 @@ app.post("/eventInfo", async( req,res)=>{
     try {
         const {eventTitle,venue} = req.body;
         if(!eventTitle || !venue){
-            res.status(400).json({error: "Event information and venue are required"})
+           return res.status(400).json({error: "Event information and venue are required"})
         }
         else{
             const savedEventInfo = await createEventInfo(req.body);
-            res.status(201).json({message: "Event information add successfully", eventInfo : savedEventInfo});
+            res.status(201).json({message: "Event information added successfully", eventInfo : savedEventInfo});
         }     
     } catch (error) {
-        res.status(500).json({error: "Failed to create event info."})
-        throw error;        
+        res.status(500).json({error: "Failed to create event info."});      
     }
 });
 
+const createSpeakerInfo = async (eventInfo)=>{
+    try {
+        const newSpeakerInfo = new SpeakerInfo(eventInfo);
+        const saveSpeakerInfo = await newSpeakerInfo.save();
+        return saveSpeakerInfo;
+    } catch (error) {
+        console.log("Failed to create speaker info", error);  
+        throw error;      
+    }
+};
+
+app.post("/speakerInfo", async( req,res)=>{
+    try {
+        const {speakerName,speakerImage, speakerRole} = req.body;
+        if(!speakerName || !speakerImage || !speakerRole){
+            return res.status(400).json({error: "Speaker informations are required"});
+        }
+        else{
+            const savedSpeakerInfo = await createSpeakerInfo(req.body);
+            res.status(201).json({message: "Speaker information added successfully", speakerInfo : savedSpeakerInfo});
+        }     
+    } catch (error) {
+        res.status(500).json({error: "Failed to add speaker info."});       
+    }
+});
+
+const getSpeakerInfo = async(speakerId)=>{
+    try {
+        const speakerInfo = await SpeakerInfo.findById(speakerId); 
+        return speakerInfo;       
+    } catch (error) {
+        throw error;
+    }
+}
+
+app.get("/speakerInfo/:id", async(req,res)=>{
+    try {
+        const speakerInfo = await getSpeakerInfo(req.params.id);
+        if(speakerInfo){
+            res.status(200).json(speakerInfo);
+        }
+        else{
+            res.status(404).json({error: "Speaker not found."})
+        }
+    } catch (error) {
+        res.status(500).json({error: " Failed to fetch the data."})
+    }
+})
+
 const getAllEvents = async()=>{
     try {
-        const allEventInfos = await EventInfo.find().populate("eventTitle");
+        const allEventInfos = await EventInfo.find().populate("eventTitle").populate("speakerInfo");
         return allEventInfos;
     } catch (error) {
         console.log("Cannot get the events", error);        
-        throw error;
     }
 };
 
@@ -104,20 +151,17 @@ app.get("/events", async(req,res)=>{
         else{
             res.status(400).json({error: "Events not found."})
         }
-        
     } catch (error) {
-        res.status(500).json({error: "Cannot fetch the events."})
-        throw error;        
+        res.status(500).json({error: "Cannot fetch the events."});       
     }
 });
 
 const getEventInfoById = async(eventId)=>{
     try {
-        const event = await EventInfo.findById(eventId).populate("eventTitle");
+        const event = await EventInfo.findById(eventId).populate("eventTitle").populate("speakerInfo");
         return event;        
     } catch (error) {
-         console.log("Cannot find the event", error);        
-        throw error;
+         console.log("Cannot find the event", error);         
     }
 };
 
@@ -141,7 +185,6 @@ const getEventByName = async(eventName)=>{
         return event;        
     } catch (error) {
          console.log("Cannot find the event", error);        
-        throw error;
     }
 };
 
@@ -165,7 +208,6 @@ const getEventByType = async(eventType)=>{
         return event;        
     } catch (error) {
          console.log("Cannot find the event", error);        
-        throw error;
     }
 };
 
@@ -213,8 +255,8 @@ const updateEventInfoById = async(eventId,dataToUpdate)=>{
         const event = await EventInfo.findByIdAndUpdate(eventId,dataToUpdate,{new: true});
         return event;        
     } catch (error) {
-         console.log("Cannot find the event", error);        
-        throw error;
+         console.log("Cannot find the event", error);
+         throw error;        
     }
 };
 
@@ -233,11 +275,47 @@ app.post("/updateEventInfoById/:id", async(req,res)=>{
     }
 });
 
+const updateSpeakerById = async( speakerId,dataToUpdate )=>{
+    try {
+        const updateSpreaker = await SpeakerInfo.findByIdAndUpdate(speakerId, dataToUpdate, {new: true});
+        return updateSpreaker;
+    } catch (error) {
+        throw error;
+    }
+}
+
+app.post("/updateSpeakerInfo/:id", async(req,res)=>{
+    try {
+        const updatedSpeaker = await updateSpeakerById(req.params.id, req.body);
+        if(updatedSpeaker){
+            res.status(200).json(updatedSpeaker);
+        }
+        else{
+            res.status(400).json({error: "Failed to update Speaker Info."})
+        }
+    } catch (error) {
+        res.status(500).json({error: "Failed to fetch speaker."});
+    }
+});
+
 const deleteEventById = async(eventId)=>{
     try {
+        const eventInfos = await EventInfo.find({ eventTitle: eventId });
+
+        //  const speakerIds = eventInfos
+        //     .map(info => info.speakerInfo)
+        //     .filter(id => id);
+        const speakerIds = eventInfos.flatMap(info => info.speakerInfo || []);
+
+        if (speakerIds.length > 0) {
+            await SpeakerInfo.deleteMany({ _id: { $in: speakerIds } });
+        }    
+
         const eventInfo = await EventInfo.deleteMany({eventTitle: eventId});
         const event = await Event.findByIdAndDelete(eventId);
-        return event;        
+       
+        return { deletedEvent: event, deletedEventInfos: eventInfos.length, deletedSpeakers: speakerIds.length };
+       
     } catch (error) {
          console.log("Cannot find the event", error);        
         throw error;
@@ -245,16 +323,16 @@ const deleteEventById = async(eventId)=>{
 };
 
 app.delete("/deleteEventById/:id", async(req,res)=>{
-    try {        
+    try {      
         const event = await deleteEventById(req.params.id);
-        if (event){
+        if (event.deletedEvent){
             res.status(200).json({message: "Event and its info deleted successfully", event: event});
         }
         else{
             res.status(404).json({error: "Event not found."});
         }        
     } catch (error) {
-        res.status(500).json({error: "Cannot fetch the event by type."})
+        res.status(500).json({error: "Failed to delete the event."})
     }
 });
 
