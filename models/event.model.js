@@ -17,7 +17,7 @@ const EventSchema = new mongoose.Schema({
     },
     timings: {
         type: String,
-        require: true,
+        required: true,
     },
     imageUrl:{
         type: String,
